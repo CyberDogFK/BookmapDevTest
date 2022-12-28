@@ -22,7 +22,7 @@ public class OutputServiceImpl implements OutputService {
         try {
             Files.write(Path.of(fileName), toFileFormat.getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't save operation to file", e);
         }
     }
 
@@ -32,7 +32,7 @@ public class OutputServiceImpl implements OutputService {
         try {
             Files.write(Path.of(fileName), toFileFormat.getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't save value to file", e);
         }
     }
 }
