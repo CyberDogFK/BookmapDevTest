@@ -7,3 +7,9 @@ o,sell,1
 q,size,10
 u,9,0,bid
 u,11,0,ask
+q,best_ask
+q,best_bid
+o,sell,1
+q,best_ask
+q,best_bid
+q,size,50

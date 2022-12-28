@@ -50,7 +50,8 @@ public class StrategyManagerImpl implements StrategyManager {
                 outputService.saveOperationToFile(operationManager.getBestAsk());
                 return;
             case "size":
-                outputService.saveValueToFile(operationManager.getOperationWithSize(Integer.parseInt(line[2])).getSize());
+                outputService.saveValueToFile(operationManager
+                        .getOperationWithSize(Integer.parseInt(line[2])).getSize());
         }
     }
 

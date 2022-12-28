@@ -7,7 +7,8 @@ public class Operation {
 
     public enum Type {
         BID,
-        ASK
+        ASK,
+        SPREAD
     }
 
     public Operation(int price, int size, Type type) {

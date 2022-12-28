@@ -29,7 +29,10 @@ public class OperationManagerImpl implements OperationManager {
                 .filter(o -> o.getType().equals(Operation.Type.BID)
                         && o.getSize() > 0)
                 .max(Comparator.comparing(Operation::getPrice))
-                .orElseThrow(() -> new RuntimeException("Can't find best bid"));
+                .orElse(operationBook.values().stream()
+                        .filter(o -> o.getType().equals(Operation.Type.BID))
+                        .max(Comparator.comparing(Operation::getPrice))
+                        .orElseThrow(() -> new RuntimeException("Can't find any bid")));
     }
 
     @Override
@@ -38,25 +41,46 @@ public class OperationManagerImpl implements OperationManager {
                 .filter(o -> o.getType().equals(Operation.Type.ASK)
                         && o.getSize() > 0)
                 .min(Comparator.comparing(Operation::getPrice))
-                .orElseThrow(() -> new RuntimeException("Can't find best ask"));
+                .orElse(operationBook.values().stream()
+                        .filter(o -> o.getType().equals(Operation.Type.ASK))
+                        .min(Comparator.comparing(Operation::getPrice))
+                        .orElseThrow(() -> new RuntimeException("Can't find any ask")));
     }
 
     @Override
     public Operation getOperationWithSize(Integer price) {
         return operationBook.values().stream()
                 .filter(o -> o.getPrice() == price)
-                .findAny().orElseThrow(() -> new RuntimeException("Can't find size of price " + price));
+                .findAny().orElse(new Operation(price, 0, Operation.Type.SPREAD));
     }
 
     @Override
     public void buyOrder(Integer size) {
-        Operation bestAsk = getBestAsk();
-        bestAsk.setSize(bestAsk.getSize() - size);
+        while (size != 0) {
+            Operation bestAsk = getBestAsk();
+            int newSize = bestAsk.getSize() - size;
+            if (newSize < 0) {
+                size = Math.abs(newSize);
+                newSize = 0;
+            } else {
+                size = 0;
+            }
+            bestAsk.setSize(newSize);
+        }
     }
 
     @Override
     public void sellOrder(Integer size) {
-        Operation bestBid = getBestBid();
-        bestBid.setSize(bestBid.getSize() - size);
+        while (size != 0) {
+            Operation bestBid = getBestBid();
+            int newSize = bestBid.getSize() - size;
+            if (newSize < 0) {
+                size = Math.abs(newSize);
+                newSize = 0;
+            } else {
+                size = 0;
+            }
+            bestBid.setSize(newSize);
+        }
     }
 }
