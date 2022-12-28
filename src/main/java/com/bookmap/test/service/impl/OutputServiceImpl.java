@@ -28,8 +28,9 @@ public class OutputServiceImpl implements OutputService {
 
     @Override
     public void saveValueToFile(Integer value) {
+        String toFileFormat = value + "\n";
         try {
-            Files.write(Path.of(fileName), String.valueOf(value).getBytes(), StandardOpenOption.APPEND);
+            Files.write(Path.of(fileName), toFileFormat.getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
