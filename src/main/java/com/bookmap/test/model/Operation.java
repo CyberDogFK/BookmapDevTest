@@ -1,5 +1,7 @@
 package com.bookmap.test.model;
 
+import java.util.Objects;
+
 public class Operation {
     private int price;
     private int size;
@@ -31,5 +33,24 @@ public class Operation {
 
     public Type getType() {
         return type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Operation operation = (Operation) o;
+        return price == operation.price
+                && size == operation.size
+                && type == operation.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(price, size, type);
     }
 }

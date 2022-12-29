@@ -2,35 +2,30 @@ package com.bookmap.test.service.impl;
 
 import com.bookmap.test.model.Operation;
 import com.bookmap.test.service.OutputService;
+
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 public class OutputServiceImpl implements OutputService {
-    private final String fileName;
+    private final BufferedWriter bufferedWriter;
 
-    public OutputServiceImpl(String fileName) {
-        this.fileName = fileName;
+    public OutputServiceImpl(BufferedWriter bufferedWriter) {
+        this.bufferedWriter = bufferedWriter;
     }
 
     @Override
     public void saveOperationToFile(Operation operation) {
-        String price = String.valueOf(operation.getPrice());
-        String size = String.valueOf(operation.getSize());
-        String toFileFormat = price + "," + size + "\n";
         try {
-            Files.write(Path.of(fileName), toFileFormat.getBytes(), StandardOpenOption.APPEND);
+            bufferedWriter.write(operation.getPrice() + "," + operation.getSize() + "\n");
         } catch (IOException e) {
             throw new RuntimeException("Can't save operation to file", e);
         }
     }
 
     @Override
-    public void saveValueToFile(Integer value) {
-        String toFileFormat = value + "\n";
+    public void saveValueToFile(int value) {
         try {
-            Files.write(Path.of(fileName), toFileFormat.getBytes(), StandardOpenOption.APPEND);
+            bufferedWriter.write(value + "\n");
         } catch (IOException e) {
             throw new RuntimeException("Can't save value to file", e);
         }

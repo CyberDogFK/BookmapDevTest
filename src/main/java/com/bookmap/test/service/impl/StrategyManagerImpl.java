@@ -5,8 +5,8 @@ import com.bookmap.test.service.OutputService;
 import com.bookmap.test.service.StrategyManager;
 
 public class StrategyManagerImpl implements StrategyManager {
-    private OperationManager operationManager;
-    private OutputService outputService;
+    private final OperationManager operationManager;
+    private final OutputService outputService;
 
     public StrategyManagerImpl(OperationManager operationManager, OutputService outputService) {
         this.operationManager = operationManager;
@@ -15,55 +15,55 @@ public class StrategyManagerImpl implements StrategyManager {
 
     @Override
     public void lineStrategy(String line) {
-        String[] split = line.split(",");
-        switch (split[0]) {
-            case "u":
-                updateStrategy(split);
+        char ch = line.charAt(0);
+        switch (ch) {
+            case 'u':
+                updateStrategy(line);
                 return;
-            case "q":
-                queriesStrategy(split);
+            case 'q':
+                queriesStrategy(line);
                 return;
-            case "o":
-                orderStrategy(split);
+            case 'o':
+                orderStrategy(line);
                 return;
             default:
                 throw new RuntimeException("Wrong line format: " + line);
         }
     }
 
-    private void orderStrategy(String[] line) {
-        switch (line[1]) {
-            case "buy":
-                operationManager.buyOrder(Integer.parseInt(line[2]));
-                return;
-            case "sell":
-                operationManager.sellOrder(Integer.parseInt(line[2]));
+    private void orderStrategy(String line) {
+        if (line.charAt(2) == 'b') {
+            operationManager.buyOrder(Integer.parseInt(line.substring(6)));
+        } else if (line.charAt(2) == 's') {
+            operationManager.sellOrder(Integer.parseInt(line.substring(7)));
         }
     }
 
-    private void queriesStrategy(String[] line) {
-        switch (line[1]) {
-            case "best_bid":
-                outputService.saveOperationToFile(operationManager.getBestBid());
-                return;
-            case "best_ask":
-                outputService.saveOperationToFile(operationManager.getBestAsk());
-                return;
-            case "size":
-                outputService.saveValueToFile(operationManager
-                        .getOperationWithSize(Integer.parseInt(line[2])).getSize());
+    private void queriesStrategy(String line) {
+        if (line.charAt(7) == 'b') {
+            outputService.saveOperationToFile(operationManager.getBestBid());
+        } else if (line.charAt(7) == 'a') {
+            outputService.saveOperationToFile(operationManager.getBestAsk());
+        } else if (line.charAt(2) == 's') {
+            outputService.saveValueToFile(operationManager
+                    .getOperationWithSize(Integer.parseInt(line.substring(7))).getSize());
         }
     }
 
-    private void updateStrategy(String[] line) {
-        switch (line[3]) {
-            case "bid":
-                operationManager.updateBid(Integer.parseInt(line[1]),
-                        Integer.parseInt(line[2]));
+    private void updateStrategy(String line) {
+        int lastIndex = line.lastIndexOf(",");
+        String substring = line.substring(line.indexOf(",") + 1, lastIndex);
+        int index = substring.indexOf(",");
+        int firstInt = Integer.parseInt(substring, 0, index, 10);
+        int secondInt = Integer.parseInt(substring, index + 1, substring.length(), 10);
+        switch (line.substring(lastIndex + 1).charAt(0)) {
+            case 'b':
+                operationManager.updateBid(firstInt,
+                        secondInt);
                 return;
-            case "ask":
-                operationManager.updateAsk(Integer.parseInt(line[1]),
-                        Integer.parseInt(line[2]));
+            case 'a':
+                operationManager.updateAsk(firstInt,
+                        secondInt);
         }
     }
 }
