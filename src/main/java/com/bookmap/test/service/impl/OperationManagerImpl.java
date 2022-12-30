@@ -4,6 +4,7 @@ import com.bookmap.test.model.Operation;
 import com.bookmap.test.service.OperationManager;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.BinaryOperator;
@@ -31,37 +32,48 @@ public class OperationManagerImpl implements OperationManager {
 
     @Override
     public Operation getBestBid() {
-        boolean seen = false;
-        Operation result = null;
-        BinaryOperator<Operation> accumulator = BinaryOperator.maxBy(Comparator.comparing(Operation::getPrice));
+        Map.Entry<Integer, Operation> entry = bidTree.lastEntry();
+        Operation biggestValue = entry.getValue();
+        while (biggestValue.getSize() == 0
+                && (entry = bidTree.lowerEntry(entry.getKey())) != null) {
+            biggestValue = entry.getValue();
+        }
+        if (entry == null) {
+            return bidTree.lastEntry().getValue();
+        }
+        return biggestValue;
 
-        for (Operation operation : bidTree.values()) {
-            if (operation.getType().equals(Operation.Type.BID)
-                    && operation.getSize() > 0) {
-                if (!seen) {
-                    seen = true;
-                    result = operation;
-                } else {
-                    result = accumulator.apply(result, operation);
-                }
-            }
-        }
-        if (seen) {
-            return result;
-        } else {
-            for (Operation o : bidTree.values()) {
-                if (o.getType().equals(Operation.Type.BID)) {
-                    if (!seen) {
-                        seen = true;
-                        result = o;
-                    } else {
-                        result = accumulator.apply(result, o);
-                    }
-                }
-            }
-            return (seen ? Optional.of(result) : Optional.<Operation>empty())
-                    .orElseThrow(() -> new RuntimeException("Can't find any bid"));
-        }
+//        boolean seen = false;
+//        Operation result = null;
+//        BinaryOperator<Operation> accumulator = BinaryOperator.maxBy(Comparator.comparing(Operation::getPrice));
+//
+//        for (Operation operation : bidTree.values()) {
+//            if (operation.getType().equals(Operation.Type.BID)
+//                    && operation.getSize() > 0) {
+//                if (!seen) {
+//                    seen = true;
+//                    result = operation;
+//                } else {
+//                    result = accumulator.apply(result, operation);
+//                }
+//            }
+//        }
+//        if (seen) {
+//            return result;
+//        } else {
+//            for (Operation o : bidTree.values()) {
+//                if (o.getType().equals(Operation.Type.BID)) {
+//                    if (!seen) {
+//                        seen = true;
+//                        result = o;
+//                    } else {
+//                        result = accumulator.apply(result, o);
+//                    }
+//                }
+//            }
+//            return (seen ? Optional.of(result) : Optional.<Operation>empty())
+//                    .orElseThrow(() -> new RuntimeException("Can't find any bid"));
+//        }
     }
 
     @Override
