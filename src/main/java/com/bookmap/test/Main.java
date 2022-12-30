@@ -20,6 +20,7 @@ public class Main {
 
     public static void main(String[] args) {
         prepareOutputFile(OUTPUT_FILE_PATH);
+ //       String line;
         try (BufferedReader bufferedReader = Files.newBufferedReader(Path.of(INPUT_FILE_PATH),
                 StandardCharsets.UTF_8);
              BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH),
@@ -27,6 +28,10 @@ public class Main {
             StrategyManager strategyManager = new StrategyManagerImpl(
                     new OperationManagerImpl(),
                     new OutputServiceImpl(bufferedWriter));
+
+//            while ((line = bufferedReader.readLine()) != null) {
+//                strategyManager.lineStrategy(line);
+//            }
 
             byte[] bytes = Files.readAllBytes(Path.of(INPUT_FILE_PATH));
             bufferedReader.close();

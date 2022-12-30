@@ -46,7 +46,9 @@ public class StrategyManagerImpl implements StrategyManager {
             outputService.saveOperationToFile(operationManager.getBestAsk());
         } else if (line.charAt(2) == 's') {
             outputService.saveValueToFile(operationManager
-                    .getOperationWithSize(Integer.parseInt(line.substring(7))).getSize());
+                    .getOperationWithPrice(Integer.parseInt(line.substring(7))).getSize());
+        } else {
+            throw new RuntimeException("Wrong line format: " + line);
         }
     }
 
@@ -64,6 +66,9 @@ public class StrategyManagerImpl implements StrategyManager {
             case 'a':
                 operationManager.updateAsk(firstInt,
                         secondInt);
+                return;
+            default:
+                throw new RuntimeException("Wrong line format: " + line);
         }
     }
 }

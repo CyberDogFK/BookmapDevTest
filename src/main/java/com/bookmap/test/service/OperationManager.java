@@ -11,7 +11,7 @@ public interface OperationManager {
 
     Operation getBestAsk();
 
-    Operation getOperationWithSize(int price);
+    Operation getOperationWithPrice(int price);
 
     void buyOrder(int size);
 
