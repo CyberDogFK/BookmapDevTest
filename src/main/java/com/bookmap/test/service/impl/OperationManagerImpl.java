@@ -42,13 +42,26 @@ public class OperationManagerImpl implements OperationManager {
             return bidTree.lastEntry().getValue();
         }
         return biggestValue;
+    }
+
+    @Override
+    public Operation getBestAsk() {
+        Map.Entry<Integer, Operation> entry = askTree.firstEntry();
+        Operation biggestValue = entry.getValue();
+        while (biggestValue.getSize() == 0
+                && (entry = askTree.higherEntry(entry.getKey())) != null) {
+            biggestValue = entry.getValue();
+        }
+        if (entry == null) {
+            return askTree.lastEntry().getValue();
+        }
+        return biggestValue;
 
 //        boolean seen = false;
 //        Operation result = null;
-//        BinaryOperator<Operation> accumulator = BinaryOperator.maxBy(Comparator.comparing(Operation::getPrice));
-//
-//        for (Operation operation : bidTree.values()) {
-//            if (operation.getType().equals(Operation.Type.BID)
+//        BinaryOperator<Operation> accumulator = BinaryOperator.minBy(Comparator.comparing(Operation::getPrice));
+//        for (Operation operation : askTree.values()) {
+//            if (operation.getType().equals(Operation.Type.ASK)
 //                    && operation.getSize() > 0) {
 //                if (!seen) {
 //                    seen = true;
@@ -61,8 +74,8 @@ public class OperationManagerImpl implements OperationManager {
 //        if (seen) {
 //            return result;
 //        } else {
-//            for (Operation o : bidTree.values()) {
-//                if (o.getType().equals(Operation.Type.BID)) {
+//            for (Operation o : askTree.values()) {
+//                if (o.getType().equals(Operation.Type.ASK)) {
 //                    if (!seen) {
 //                        seen = true;
 //                        result = o;
@@ -71,46 +84,12 @@ public class OperationManagerImpl implements OperationManager {
 //                    }
 //                }
 //            }
-//            return (seen ? Optional.of(result) : Optional.<Operation>empty())
-//                    .orElseThrow(() -> new RuntimeException("Can't find any bid"));
+//            if (seen) {
+//                return result;
+//            } else {
+//                throw new RuntimeException("Can't find best ask");
+//            }
 //        }
-    }
-
-    @Override
-    public Operation getBestAsk() {
-        boolean seen = false;
-        Operation result = null;
-        BinaryOperator<Operation> accumulator = BinaryOperator.minBy(Comparator.comparing(Operation::getPrice));
-        for (Operation operation : askTree.values()) {
-            if (operation.getType().equals(Operation.Type.ASK)
-                    && operation.getSize() > 0) {
-                if (!seen) {
-                    seen = true;
-                    result = operation;
-                } else {
-                    result = accumulator.apply(result, operation);
-                }
-            }
-        }
-        if (seen) {
-            return result;
-        } else {
-            for (Operation o : askTree.values()) {
-                if (o.getType().equals(Operation.Type.ASK)) {
-                    if (!seen) {
-                        seen = true;
-                        result = o;
-                    } else {
-                        result = accumulator.apply(result, o);
-                    }
-                }
-            }
-            if (seen) {
-                return result;
-            } else {
-                throw new RuntimeException("Can't find best ask");
-            }
-        }
     }
 
     @Override
