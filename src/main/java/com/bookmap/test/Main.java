@@ -5,17 +5,14 @@ import com.bookmap.test.service.impl.OperationManagerImpl;
 import com.bookmap.test.service.impl.OutputServiceImpl;
 import com.bookmap.test.service.impl.StrategyManagerImpl;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.TreeMap;
 
 public class Main {
     private static final String INPUT_FILE_PATH = "input.txt";
@@ -23,14 +20,28 @@ public class Main {
 
     public static void main(String[] args) {
         prepareOutputFile(OUTPUT_FILE_PATH);
-        String line;
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(INPUT_FILE_PATH), 8192 * 1280);
-             BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH));) {
+        try (BufferedReader bufferedReader = Files.newBufferedReader(Path.of(INPUT_FILE_PATH),
+                StandardCharsets.UTF_8);
+             BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH),
+                     StandardCharsets.UTF_8)) {
             StrategyManager strategyManager = new StrategyManagerImpl(
                     new OperationManagerImpl(),
                     new OutputServiceImpl(bufferedWriter));
-            while ((line = bufferedReader.readLine()) != null) {
-                strategyManager.lineStrategy(line);
+
+            byte[] bytes = Files.readAllBytes(Path.of(INPUT_FILE_PATH));
+            bufferedReader.close();
+
+            StringBuilder stringBuilder;
+            for (int i = 0; i < bytes.length; i++) {
+                stringBuilder = new StringBuilder();
+                while ((char) bytes[i] != System.lineSeparator().charAt(0)) {
+                    stringBuilder.append((char) bytes[i]);
+                    i++;
+                    if (i >= bytes.length) {
+                        break;
+                    }
+                }
+                strategyManager.lineStrategy(stringBuilder.toString());
             }
         } catch (IOException e) {
             throw new RuntimeException("Can't read file", e);
