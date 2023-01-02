@@ -21,16 +21,16 @@ public class Main {
     public static void main(String[] args) {
         prepareOutputFile(OUTPUT_FILE_PATH);
         String line;
-        try (BufferedReader bufferedReader = Files.newBufferedReader(Path.of(INPUT_FILE_PATH),
-                StandardCharsets.UTF_8);
-             BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH),
-                     StandardCharsets.UTF_8)) {
+        try (BufferedReader bufferedReader = Files.newBufferedReader(Path.of(INPUT_FILE_PATH));
+             BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH))) {
             StrategyManager strategyManager = new StrategyManagerImpl(
                     new OperationManagerImpl(),
                     new OutputServiceImpl(bufferedWriter));
-
+            int count = 0;
             while ((line = bufferedReader.readLine()) != null) {
                 strategyManager.lineStrategy(line);
+                count++;
+                System.gc();
             }
 
 //            byte[] bytes = Files.readAllBytes(Path.of(INPUT_FILE_PATH));
