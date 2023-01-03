@@ -30,7 +30,10 @@ public class Main {
             while ((line = bufferedReader.readLine()) != null) {
                 strategyManager.lineStrategy(line);
                 count++;
-                System.gc();
+                if (count >= 100_000) {
+                    System.gc();
+                    count = 0;
+                }
             }
 
 //            byte[] bytes = Files.readAllBytes(Path.of(INPUT_FILE_PATH));
