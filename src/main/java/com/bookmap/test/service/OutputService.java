@@ -5,5 +5,5 @@ import com.bookmap.test.model.Operation;
 public interface OutputService {
     void saveOperationToFile(Operation operation);
 
-    void saveValueToFile(Integer value);
+    void saveValueToFile(int value);
 }

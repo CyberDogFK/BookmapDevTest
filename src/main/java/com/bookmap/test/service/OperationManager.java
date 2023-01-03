@@ -3,17 +3,17 @@ package com.bookmap.test.service;
 import com.bookmap.test.model.Operation;
 
 public interface OperationManager {
-    void updateBid(Integer price, Integer size);
+    void updateBid(int price, int size);
 
-    void updateAsk(Integer price, Integer size);
+    void updateAsk(int price, int size);
 
     Operation getBestBid();
 
     Operation getBestAsk();
 
-    Operation getOperationWithSize(Integer price);
+    Operation getOperationWithPrice(int price);
 
-    void buyOrder(Integer size);
+    void buyOrder(int size);
 
-    void sellOrder(Integer size);
+    void sellOrder(int size);
 }

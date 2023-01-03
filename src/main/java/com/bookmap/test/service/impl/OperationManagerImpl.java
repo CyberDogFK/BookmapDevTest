@@ -2,85 +2,145 @@ package com.bookmap.test.service.impl;
 
 import com.bookmap.test.model.Operation;
 import com.bookmap.test.service.OperationManager;
+
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.function.BinaryOperator;
 
 public class OperationManagerImpl implements OperationManager {
-    private Map<Integer, Operation> operationBook;
+    private final TreeMap<Integer, Operation> bidTree;
+    private final TreeMap<Integer, Operation> askTree;
 
     public OperationManagerImpl() {
-        operationBook = new HashMap<>();
+        bidTree = new TreeMap<>();
+        askTree = new TreeMap<>();
     }
 
     @Override
-    public void updateBid(Integer price, Integer size) {
-        operationBook.put(price, new Operation(price, size, Operation.Type.BID));
+    public void updateBid(int price, int size) {
+        bidTree.put(price, new Operation(price, size, Operation.Type.BID));
+        askTree.remove(price);
     }
 
     @Override
-    public void updateAsk(Integer price, Integer size) {
-        operationBook.put(price, new Operation(price, size, Operation.Type.ASK));
+    public void updateAsk(int price, int size) {
+        askTree.put(price, new Operation(price, size, Operation.Type.ASK));
+        bidTree.remove(price);
     }
 
     @Override
     public Operation getBestBid() {
-        return operationBook.values().stream()
-                .filter(o -> o.getType().equals(Operation.Type.BID)
-                        && o.getSize() > 0)
-                .max(Comparator.comparing(Operation::getPrice))
-                .orElse(operationBook.values().stream()
-                        .filter(o -> o.getType().equals(Operation.Type.BID))
-                        .max(Comparator.comparing(Operation::getPrice))
-                        .orElseThrow(() -> new RuntimeException("Can't find any bid")));
+        Map.Entry<Integer, Operation> entry = bidTree.lastEntry();
+        Operation biggestValue = entry.getValue();
+        while (biggestValue.getSize() == 0
+                && (entry = bidTree.lowerEntry(entry.getKey())) != null) {
+            biggestValue = entry.getValue();
+        }
+        if (entry == null) {
+            return bidTree.lastEntry().getValue();
+        }
+        return biggestValue;
     }
 
     @Override
     public Operation getBestAsk() {
-        return operationBook.values().stream()
-                .filter(o -> o.getType().equals(Operation.Type.ASK)
-                        && o.getSize() > 0)
-                .min(Comparator.comparing(Operation::getPrice))
-                .orElse(operationBook.values().stream()
-                        .filter(o -> o.getType().equals(Operation.Type.ASK))
-                        .min(Comparator.comparing(Operation::getPrice))
-                        .orElseThrow(() -> new RuntimeException("Can't find any ask")));
+        Map.Entry<Integer, Operation> entry = askTree.firstEntry();
+        Operation biggestValue = entry.getValue();
+        while (biggestValue.getSize() == 0
+                && (entry = askTree.higherEntry(entry.getKey())) != null) {
+            biggestValue = entry.getValue();
+        }
+        if (entry == null) {
+            return askTree.lastEntry().getValue();
+        }
+        return biggestValue;
+
+//        boolean seen = false;
+//        Operation result = null;
+//        BinaryOperator<Operation> accumulator = BinaryOperator.minBy(Comparator.comparing(Operation::getPrice));
+//        for (Operation operation : askTree.values()) {
+//            if (operation.getType().equals(Operation.Type.ASK)
+//                    && operation.getSize() > 0) {
+//                if (!seen) {
+//                    seen = true;
+//                    result = operation;
+//                } else {
+//                    result = accumulator.apply(result, operation);
+//                }
+//            }
+//        }
+//        if (seen) {
+//            return result;
+//        } else {
+//            for (Operation o : askTree.values()) {
+//                if (o.getType().equals(Operation.Type.ASK)) {
+//                    if (!seen) {
+//                        seen = true;
+//                        result = o;
+//                    } else {
+//                        result = accumulator.apply(result, o);
+//                    }
+//                }
+//            }
+//            if (seen) {
+//                return result;
+//            } else {
+//                throw new RuntimeException("Can't find best ask");
+//            }
+//        }
     }
 
     @Override
-    public Operation getOperationWithSize(Integer price) {
-        return operationBook.values().stream()
-                .filter(o -> o.getPrice() == price)
-                .findAny().orElse(new Operation(price, 0, Operation.Type.SPREAD));
+    public Operation getOperationWithPrice(int price) {
+        Operation operation1 = askTree.get(price);
+        Operation operation2 = bidTree.get(price);
+        if (operation1 != null) {
+            return operation1;
+        } else if (operation2 != null) {
+            return operation2;
+        } else {
+            return new Operation(price, 0, Operation.Type.SPREAD);
+        }
+
+
+//        Operation operation = operationBook.get(price);
+//        if (operation == null) {
+//            operation =  new Operation(price, 0, Operation.Type.SPREAD);
+//        }
+//        return operation;
     }
 
     @Override
-    public void buyOrder(Integer size) {
+    public void buyOrder(int size) {
+        Operation bestAsk = getBestAsk();
         while (size != 0) {
-            Operation bestAsk = getBestAsk();
             int newSize = bestAsk.getSize() - size;
-            if (newSize < 0) {
+            if (newSize <= 0) {
                 size = Math.abs(newSize);
-                newSize = 0;
+                askTree.remove(bestAsk.getPrice());
+                bestAsk = getBestAsk();
             } else {
                 size = 0;
+                bestAsk.setSize(newSize);
             }
-            bestAsk.setSize(newSize);
         }
     }
 
     @Override
-    public void sellOrder(Integer size) {
+    public void sellOrder(int size) {
+        Operation bestBid = getBestBid();
         while (size != 0) {
-            Operation bestBid = getBestBid();
             int newSize = bestBid.getSize() - size;
-            if (newSize < 0) {
+            if (newSize <= 0) {
                 size = Math.abs(newSize);
-                newSize = 0;
+                bidTree.remove(bestBid.getPrice());
+                bestBid = getBestBid();
             } else {
                 size = 0;
+                bestBid.setSize(newSize);
             }
-            bestBid.setSize(newSize);
         }
     }
 }

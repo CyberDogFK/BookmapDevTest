@@ -4,31 +4,82 @@ import com.bookmap.test.service.StrategyManager;
 import com.bookmap.test.service.impl.OperationManagerImpl;
 import com.bookmap.test.service.impl.OutputServiceImpl;
 import com.bookmap.test.service.impl.StrategyManagerImpl;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.TreeMap;
 
 public class Main {
     private static final String INPUT_FILE_PATH = "input.txt";
     private static final String OUTPUT_FILE_PATH = "output.txt";
 
     public static void main(String[] args) {
-        List<String> strings = readFile(INPUT_FILE_PATH);
         prepareOutputFile(OUTPUT_FILE_PATH);
-
-        StrategyManager lineStrategy = new StrategyManagerImpl(
-                new OperationManagerImpl(),
-                new OutputServiceImpl(OUTPUT_FILE_PATH));
-        strings.forEach(lineStrategy::lineStrategy);
+        readAllLineByLine();
     }
 
-    private static List<String> readFile(String filePath) {
-        File file = new File(filePath);
-        try {
-            return Files.readAllLines(file.toPath());
+    // better perfomance in small files
+//    // need change StrategyManager parameters to StringBuilder
+//    private static void readAllInMemory() {
+//        try (BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH))) {
+//            StrategyManager strategyManager = new StrategyManagerImpl(
+//                    new OperationManagerImpl(),
+//                    new OutputServiceImpl(bufferedWriter));
+//        byte[] bytes =  Files.readAllBytes(Path.of(INPUT_FILE_PATH));
+//
+//        StringBuilder stringBuilder = new StringBuilder();
+//            for (int i = 0; i < bytes.length; i++) {
+//                stringBuilder.setLength(0);
+//                while (bytes[i] != System.lineSeparator().charAt(0)) {
+//                    stringBuilder.append((char) bytes[i]);
+//                    i++;
+//                    if (i >= bytes.length) {
+//                        break;
+//                    }
+//                }
+//                strategyManager.lineStrategy(stringBuilder);
+//            }
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
+    //better perfomance for huge files
+    private static void readAllLineByLine() {
+        String line;
+        try (BufferedReader bufferedReader = Files.newBufferedReader(Path.of(INPUT_FILE_PATH));
+             BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH))) {
+            StrategyManager strategyManager = new StrategyManagerImpl(
+                    new OperationManagerImpl(),
+                    new OutputServiceImpl(bufferedWriter));
+            while ((line = bufferedReader.readLine()) != null) {
+                strategyManager.lineStrategy(line); // need change StrategyManager parameters to String
+            }
+
+//            byte[] bytes = Files.readAllBytes(Path.of(INPUT_FILE_PATH));
+//            bufferedReader.close();
+//
+//            StringBuilder stringBuilder;
+//            for (int i = 0; i < bytes.length; i++) {
+//                stringBuilder = new StringBuilder();
+//                while ((char) bytes[i] != System.lineSeparator().charAt(0)) {
+//                    stringBuilder.append((char) bytes[i]);
+//                    i++;
+//                    if (i >= bytes.length) {
+//                        break;
+//                    }
+//                }
+//                strategyManager.lineStrategy(stringBuilder.toString());
+//            }
         } catch (IOException e) {
-            throw new RuntimeException("Can't read input file " + INPUT_FILE_PATH, e);
+            throw new RuntimeException("Can't read file", e);
         }
     }
 
