@@ -25,6 +25,38 @@ public class Main {
         readAllLineByLine();
     }
 
+    //better perfomance for huge files
+    private static void readAllLineByLine() {
+        String line;
+        try (BufferedReader bufferedReader = Files.newBufferedReader(Path.of(INPUT_FILE_PATH));
+             BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH))) {
+            StrategyManager strategyManager = new StrategyManagerImpl(
+                    new OperationManagerImpl(),
+                    new OutputServiceImpl(bufferedWriter));
+            while ((line = bufferedReader.readLine()) != null) {
+                strategyManager.lineStrategy(line); // need change StrategyManager parameters to String
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Can't read file", e);
+        }
+    }
+
+    private static File prepareOutputFile(String filePath) {
+        File outputFile = new File(filePath);
+        try {
+            if (!outputFile.exists()) {
+                outputFile.createNewFile();
+            } else {
+                outputFile.delete();
+                outputFile.createNewFile();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Can't create output file", e);
+        }
+        return outputFile;
+    }
+
+
     // better perfomance in small files
 //    // need change StrategyManager parameters to StringBuilder
 //    private static void readAllInMemory() {
@@ -50,51 +82,4 @@ public class Main {
 //            throw new RuntimeException(e);
 //        }
 //    }
-
-    //better perfomance for huge files
-    private static void readAllLineByLine() {
-        String line;
-        try (BufferedReader bufferedReader = Files.newBufferedReader(Path.of(INPUT_FILE_PATH));
-             BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of(OUTPUT_FILE_PATH))) {
-            StrategyManager strategyManager = new StrategyManagerImpl(
-                    new OperationManagerImpl(),
-                    new OutputServiceImpl(bufferedWriter));
-            while ((line = bufferedReader.readLine()) != null) {
-                strategyManager.lineStrategy(line); // need change StrategyManager parameters to String
-            }
-
-//            byte[] bytes = Files.readAllBytes(Path.of(INPUT_FILE_PATH));
-//            bufferedReader.close();
-//
-//            StringBuilder stringBuilder;
-//            for (int i = 0; i < bytes.length; i++) {
-//                stringBuilder = new StringBuilder();
-//                while ((char) bytes[i] != System.lineSeparator().charAt(0)) {
-//                    stringBuilder.append((char) bytes[i]);
-//                    i++;
-//                    if (i >= bytes.length) {
-//                        break;
-//                    }
-//                }
-//                strategyManager.lineStrategy(stringBuilder.toString());
-//            }
-        } catch (IOException e) {
-            throw new RuntimeException("Can't read file", e);
-        }
-    }
-
-    private static File prepareOutputFile(String filePath) {
-        File outputFile = new File(filePath);
-        try {
-            if (!outputFile.exists()) {
-                outputFile.createNewFile();
-            } else {
-                outputFile.delete();
-                outputFile.createNewFile();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Can't create output file", e);
-        }
-        return outputFile;
-    }
 }
